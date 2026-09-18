@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "allowedOrigins": ["http://127.0.0.1:3000"],
+  "allowedPathPatterns": [
+    "^/start$",
+    "^/members/search$",
+    "^/members/results$",
+    "^/members/[0-9]{5}$",
+    "^/members/[0-9]{5}/accounts/savings$",
+    "^/members/[0-9]{5}/accounts/savings/panel$",
+    "^/session-expired$",
+    "^/assets/[^/]+$"
+  ],
+  "deniedPathPatterns": ["^/members/[0-9]{5}/accounts/savings/close(?:/.*)?$"],
+  "allowedActions": ["navigate", "fill", "click", "read", "assert"],
+  "humanRequiredControls": [
+    { "role": "button", "name": "Close Account" },
+    { "role": "button", "name": "Confirm Close Account" }
+  ]
+}

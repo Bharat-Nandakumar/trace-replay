@@ -1,0 +1,104 @@
+{
+  "schemaVersion": 1,
+  "id": "lookup_savings_balance",
+  "version": "1.0.0",
+  "name": "Look up a member savings balance",
+  "description": "Search for a member, open their savings account, and return the current balance.",
+  "compatibility": {
+    "appFamily": "northstar_mock_bank",
+    "appVersion": "1.x",
+    "entryPath": "/start",
+    "requiredMarkers": ["Member Search", "Savings Account"]
+  },
+  "inputs": {
+    "member_id": {
+      "type": "string",
+      "description": "Five-digit member identifier",
+      "pattern": "^[0-9]{5}$",
+      "sensitive": true,
+      "invalidOutcomeCode": "INVALID_MEMBER_ID"
+    }
+  },
+  "outputs": {
+    "balance": {
+      "type": "money",
+      "description": "Current savings balance",
+      "currency": "USD",
+      "sensitive": true
+    }
+  },
+  "steps": [
+    {
+      "id": "enter_member_id",
+      "description": "Enter the invocation's member ID on Member Search",
+      "risk": "reversible",
+      "action": "fill",
+      "target": {
+        "candidates": [
+          { "kind": "role", "role": "textbox", "name": "Member ID" },
+          { "kind": "label", "text": "Member ID" }
+        ]
+      },
+      "value": { "inputRef": "member_id" }
+    },
+    {
+      "id": "search_member",
+      "description": "Submit the member search",
+      "risk": "reversible",
+      "action": "click",
+      "target": { "candidates": [{ "kind": "role", "role": "button", "name": "Search" }] },
+      "after": {
+        "kind": "visible",
+        "target": { "candidates": [{ "kind": "role", "role": "heading", "name": "Search Results" }] }
+      }
+    },
+    {
+      "id": "open_member",
+      "description": "Open the matching member record",
+      "risk": "read_only",
+      "action": "click",
+      "target": { "candidates": [{ "kind": "role", "role": "link", "name": "Open member" }] },
+      "after": {
+        "kind": "visible",
+        "target": { "candidates": [{ "kind": "role", "role": "heading", "name": "Member Details" }] }
+      }
+    },
+    {
+      "id": "open_savings",
+      "description": "Open the member's savings account",
+      "risk": "read_only",
+      "action": "click",
+      "target": { "candidates": [{ "kind": "role", "role": "link", "name": "Open savings account" }] },
+      "after": {
+        "kind": "visible",
+        "target": { "candidates": [{ "kind": "role", "role": "heading", "name": "Savings Account" }] }
+      }
+    },
+    {
+      "id": "read_balance",
+      "description": "Read the current balance from the savings details frame",
+      "risk": "read_only",
+      "action": "read",
+      "target": {
+        "frame": { "title": "Savings account details" },
+        "candidates": [{ "kind": "table_value", "rowHeader": "Current savings balance" }]
+      },
+      "output": "balance",
+      "parser": "money"
+    }
+  ],
+  "success": {
+    "kind": "visible",
+    "target": {
+      "frame": { "title": "Savings account details" },
+      "candidates": [{ "kind": "role", "role": "heading", "name": "Account Balance" }]
+    }
+  },
+  "businessOutcomes": [
+    {
+      "code": "MEMBER_NOT_FOUND",
+      "description": "No member matched the supplied ID",
+      "when": { "kind": "visible", "target": { "candidates": [{ "kind": "text", "text": "No member found for that ID." }] } }
+    }
+  ]
+}
