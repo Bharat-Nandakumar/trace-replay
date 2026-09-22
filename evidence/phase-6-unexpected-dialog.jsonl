@@ -1,0 +1,24 @@
+{"at":"2026-09-22T05:18:06.678Z","event":"run_started","mode":"replay","decisionSource":"artifact","modelCalls":0,"capabilityId":"lookup_savings_balance","capabilityVersion":"1.0.0","artifactSha256":"2d37fd1b1bb466f3243d57765fd070df6fcfc27b9f9320b1ef99e146b67aec2d","inputNames":["member_id"],"entryUrl":"http://127.0.0.1:3000/start?scenario=unexpected_dialog"}
+{"at":"2026-09-22T05:18:06.681Z","event":"input_validation","valid":true}
+{"at":"2026-09-22T05:18:09.042Z","event":"policy_decision","stepId":"entry","decision":{"kind":"allow"}}
+{"at":"2026-09-22T05:18:09.677Z","event":"step_started","stepId":"enter_member_id","action":"fill","description":"Enter the invocation's member ID on Member Search"}
+{"at":"2026-09-22T05:18:09.741Z","event":"target_resolved","stepId":"enter_member_id","identity":{"role":"textbox","name":"Member ID"},"strategyIndex":0}
+{"at":"2026-09-22T05:18:09.744Z","event":"policy_decision","stepId":"enter_member_id","decision":{"kind":"allow"}}
+{"at":"2026-09-22T05:18:09.841Z","event":"step_finished","stepId":"enter_member_id","outputs":{}}
+{"at":"2026-09-22T05:18:09.880Z","event":"step_started","stepId":"search_member","action":"click","description":"Submit the member search"}
+{"at":"2026-09-22T05:18:09.903Z","event":"target_resolved","stepId":"search_member","identity":{"role":"button","name":"Search"},"strategyIndex":0}
+{"at":"2026-09-22T05:18:09.906Z","event":"policy_decision","stepId":"search_member","decision":{"kind":"allow"}}
+{"at":"2026-09-22T05:18:10.085Z","event":"checkpoint","stepId":"search_member","verified":true}
+{"at":"2026-09-22T05:18:10.090Z","event":"step_finished","stepId":"search_member","outputs":{}}
+{"at":"2026-09-22T05:18:10.109Z","event":"step_started","stepId":"open_member","action":"click","description":"Open the matching member record"}
+{"at":"2026-09-22T05:18:10.116Z","event":"target_resolved","stepId":"open_member","identity":{"role":"link","name":"Open member"},"strategyIndex":0}
+{"at":"2026-09-22T05:18:10.116Z","event":"policy_decision","stepId":"open_member","decision":{"kind":"allow"}}
+{"at":"2026-09-22T05:18:10.322Z","event":"checkpoint","stepId":"open_member","verified":true}
+{"at":"2026-09-22T05:18:10.327Z","event":"step_finished","stepId":"open_member","outputs":{}}
+{"at":"2026-09-22T05:18:10.333Z","event":"step_started","stepId":"open_savings","action":"click","description":"Open the member's savings account"}
+{"at":"2026-09-22T05:18:10.352Z","event":"target_resolved","stepId":"open_savings","identity":{"role":"link","name":"Open savings account"},"strategyIndex":0}
+{"at":"2026-09-22T05:18:10.355Z","event":"policy_decision","stepId":"open_savings","decision":{"kind":"allow"}}
+{"at":"2026-09-22T05:18:10.510Z","event":"runtime_condition_detected","stepId":"open_savings","code":"UNEXPECTED_DIALOG","classification":"intervention","currentUrl":"http://127.0.0.1:3000/members/[REDACTED]/accounts/savings"}
+{"at":"2026-09-22T05:18:10.520Z","event":"diagnostic_evidence","stepId":"open_savings","code":"UNEXPECTED_DIALOG","expected":"Complete step open_savings","observedUrl":"http://127.0.0.1:3000/members/[REDACTED]/accounts/savings","observed":"URL: http://127.0.0.1:3000/members/[REDACTED]/accounts/savings\n- banner:\n  - strong: Northstar Credit Union\n  - text: Operations Console\n- navigation \"Primary navigation\":\n  - text: SERVICING\n  - link \"Member Search\":\n    - /url: /members/search\n- main:\n  - text: Servicing / Members / [REDACTED] / Savings\n  - heading \"Savings Account\" [level=1]\n  - dialog \"Account notice\":\n    - heading \"Account notice\" [level=2]\n    - paragraph: Manual review is required before this account can be displayed.\n    - button \"Dismiss notice\""}
+{"at":"2026-09-22T05:18:10.521Z","event":"intervention_requested","requestId":"6dba68c4-b915-44f1-9d91-18725683fe81","stepId":"open_savings","code":"UNEXPECTED_DIALOG","reason":"An unexpected account notice requires an operator"}
+{"at":"2026-09-22T05:18:10.521Z","event":"run_finished","result":{"status":"intervention_required","capabilityId":"lookup_savings_balance","requestId":"6dba68c4-b915-44f1-9d91-18725683fe81","stepId":"open_savings","reason":"An unexpected account notice requires an operator","evidenceRef":"evidence/phase-6-unexpected-dialog.jsonl"},"controlEvents":[{"sessionId":"2fdf8565-81b1-4f68-8548-0639cb14174d","from":"automation","to":"paused","actor":"automation","reason":"An unexpected account notice requires an operator","at":"2026-09-22T05:18:10.521Z"},{"sessionId":"2fdf8565-81b1-4f68-8548-0639cb14174d","from":"paused","to":"finished","actor":"automation","reason":"intervention_required","at":"2026-09-22T05:18:10.521Z"}],"modelCalls":0}

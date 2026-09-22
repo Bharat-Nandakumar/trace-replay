@@ -10,6 +10,7 @@ import { readFileSync } from "node:fs";
 import { parseDecision } from "../src/discovery/decision.js";
 import type { DecisionSource } from "../src/discovery/model.js";
 import { runDiscovery } from "../src/discovery/run.js";
+import type { HandoffHandler } from "../src/handoff/types.js";
 
 const policy = parsePolicy(JSON.parse(readFileSync(new URL("../config/mock-bank-policy.json", import.meta.url), "utf8")));
 
@@ -92,6 +93,52 @@ test("discovery policy stops a model-proposed Close Account click before activat
     const log = await readFile(path, "utf8");
     assert.match(log, /RISKY_CONTROL/);
     assert.doesNotMatch(log, /accounts\/savings\/close\/review/);
+  } finally {
+    await new Promise<void>((resolve, reject) => server.close((error) => error ? reject(error) : resolve()));
+  }
+});
+
+test("discovery can resume in the same page after an operator resolves a dialog", async () => {
+  const server = app.listen(0, "127.0.0.1");
+  try {
+    await new Promise<void>((resolve) => server.once("listening", resolve));
+    const baseUrl = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
+    const path = join(await mkdtemp(join(tmpdir(), "trace-replay-discovery-handoff-")), "run.jsonl");
+    const decisions = [
+      ...flow.slice(0, 4),
+      proposal("request_human"),
+      proposal("read", { kind: "table_value", rowHeader: "Current savings balance", frameTitle: "Savings account details" }),
+      proposal("finish"),
+    ];
+    let index = 0;
+    const model: DecisionSource = {
+      provider: "scripted-test", model: "handoff-flow",
+      decide: async () => ({ decision: decisions[index++] ?? proposal("finish") }),
+    };
+    const handoff: HandoffHandler = {
+      operatorId: "operator-test", timeoutMs: 5_000,
+      handle: async (request) => {
+        await request.accept();
+        await request.page.getByRole("button", { name: "Dismiss notice" }).click();
+        return "resume";
+      },
+    };
+    const result = await runDiscovery({
+      goal: "Look up member {member_id} and return savings balance",
+      entryUrl: `${baseUrl}/start?scenario=unexpected_dialog`,
+      inputs: { member_id: "10001" }, policy: { ...policy, allowedOrigins: [baseUrl] }, model, logPath: path,
+      executablePath: process.env.CHROME_PATH || undefined, handoff, headed: false,
+      verifyCompletion: async (surface, readings) => {
+        const heading = await surface.resolve({ frame: { title: "Savings account details" }, candidates: [{ kind: "role", role: "heading", name: "Account Balance" }] });
+        return heading.status === "unique" && readings.includes("$1250.75 USD");
+      },
+    });
+    assert.equal(result.status, "success", JSON.stringify(result));
+    const log = await readFile(path, "utf8");
+    assert.match(log, /"event":"intervention_requested"/);
+    assert.match(log, /"event":"human_action".*"name":"Dismiss notice"/);
+    assert.match(log, /"event":"handoff_revalidated".*"verified":true/);
+    assert.doesNotMatch(log, /10001|1250\.75/);
   } finally {
     await new Promise<void>((resolve, reject) => server.close((error) => error ? reject(error) : resolve()));
   }

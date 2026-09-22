@@ -23,6 +23,7 @@ export const CompilationProfileSchema = z.strictObject({
   })).min(1),
   success: ConditionSchema,
   businessOutcomes: CapabilityArtifactSchema.shape.businessOutcomes,
+  runtimeConditions: CapabilityArtifactSchema.shape.runtimeConditions,
 });
 
 export type CompilationProfile = z.infer<typeof CompilationProfileSchema>;

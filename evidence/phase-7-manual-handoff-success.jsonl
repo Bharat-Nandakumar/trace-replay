@@ -1,0 +1,38 @@
+{"at":"2026-09-22T06:43:39.711Z","event":"run_started","mode":"replay","decisionSource":"artifact","modelCalls":0,"capabilityId":"lookup_savings_balance","capabilityVersion":"1.0.0","artifactSha256":"2d37fd1b1bb466f3243d57765fd070df6fcfc27b9f9320b1ef99e146b67aec2d","inputNames":["member_id"],"entryUrl":"http://127.0.0.1:3000/start?scenario=unexpected_dialog"}
+{"at":"2026-09-22T06:43:39.711Z","event":"input_validation","valid":true}
+{"at":"2026-09-22T06:43:41.806Z","event":"policy_decision","stepId":"entry","decision":{"kind":"allow"}}
+{"at":"2026-09-22T06:43:41.957Z","event":"step_started","stepId":"enter_member_id","action":"fill","description":"Enter the invocation's member ID on Member Search"}
+{"at":"2026-09-22T06:43:41.979Z","event":"target_resolved","stepId":"enter_member_id","identity":{"role":"textbox","name":"Member ID"},"strategyIndex":0}
+{"at":"2026-09-22T06:43:41.979Z","event":"policy_decision","stepId":"enter_member_id","decision":{"kind":"allow"}}
+{"at":"2026-09-22T06:43:42.015Z","event":"step_finished","stepId":"enter_member_id","outputs":{}}
+{"at":"2026-09-22T06:43:42.020Z","event":"step_started","stepId":"search_member","action":"click","description":"Submit the member search"}
+{"at":"2026-09-22T06:43:42.023Z","event":"target_resolved","stepId":"search_member","identity":{"role":"button","name":"Search"},"strategyIndex":0}
+{"at":"2026-09-22T06:43:42.024Z","event":"policy_decision","stepId":"search_member","decision":{"kind":"allow"}}
+{"at":"2026-09-22T06:43:42.153Z","event":"checkpoint","stepId":"search_member","verified":true}
+{"at":"2026-09-22T06:43:42.159Z","event":"step_finished","stepId":"search_member","outputs":{}}
+{"at":"2026-09-22T06:43:42.165Z","event":"step_started","stepId":"open_member","action":"click","description":"Open the matching member record"}
+{"at":"2026-09-22T06:43:42.173Z","event":"target_resolved","stepId":"open_member","identity":{"role":"link","name":"Open member"},"strategyIndex":0}
+{"at":"2026-09-22T06:43:42.174Z","event":"policy_decision","stepId":"open_member","decision":{"kind":"allow"}}
+{"at":"2026-09-22T06:43:42.302Z","event":"checkpoint","stepId":"open_member","verified":true}
+{"at":"2026-09-22T06:43:42.309Z","event":"step_finished","stepId":"open_member","outputs":{}}
+{"at":"2026-09-22T06:43:42.312Z","event":"step_started","stepId":"open_savings","action":"click","description":"Open the member's savings account"}
+{"at":"2026-09-22T06:43:42.314Z","event":"target_resolved","stepId":"open_savings","identity":{"role":"link","name":"Open savings account"},"strategyIndex":0}
+{"at":"2026-09-22T06:43:42.314Z","event":"policy_decision","stepId":"open_savings","decision":{"kind":"allow"}}
+{"at":"2026-09-22T06:43:42.379Z","event":"runtime_condition_detected","stepId":"open_savings","code":"UNEXPECTED_DIALOG","classification":"intervention","currentUrl":"http://127.0.0.1:3000/members/[REDACTED]/accounts/savings"}
+{"at":"2026-09-22T06:43:42.382Z","event":"diagnostic_evidence","stepId":"open_savings","code":"UNEXPECTED_DIALOG","expected":"Complete step open_savings","observedUrl":"http://127.0.0.1:3000/members/[REDACTED]/accounts/savings","observed":"URL: http://127.0.0.1:3000/members/[REDACTED]/accounts/savings\n- banner:\n  - strong: Northstar Credit Union\n  - text: Operations Console\n- navigation \"Primary navigation\":\n  - text: SERVICING\n  - link \"Member Search\":\n    - /url: /members/search\n- main:\n  - text: Servicing / Members / [REDACTED] / Savings\n  - heading \"Savings Account\" [level=1]\n  - dialog \"Account notice\":\n    - heading \"Account notice\" [level=2]\n    - paragraph: Manual review is required before this account can be displayed.\n    - button \"Dismiss notice\""}
+{"at":"2026-09-22T06:43:42.383Z","event":"intervention_requested","requestId":"648bc788-35f7-4fd1-895f-758ebe537831","stepId":"open_savings","code":"UNEXPECTED_DIALOG","reason":"An unexpected account notice requires an operator"}
+{"at":"2026-09-22T06:43:45.228Z","event":"intervention_accepted","requestId":"648bc788-35f7-4fd1-895f-758ebe537831","stepId":"open_savings","operatorId":"bharat"}
+{"at":"2026-09-22T06:43:47.291Z","event":"human_action","requestId":"648bc788-35f7-4fd1-895f-758ebe537831","operatorId":"bharat","action":"click","control":{"role":"button","name":"Dismiss notice"},"url":"http://127.0.0.1:3000/members/[REDACTED]/accounts/savings"}
+{"at":"2026-09-22T06:43:47.312Z","event":"human_action","requestId":"648bc788-35f7-4fd1-895f-758ebe537831","operatorId":"bharat","action":"navigate","method":"POST","url":"http://127.0.0.1:3000/members/[REDACTED]/accounts/savings/dismiss","source":"browser_request"}
+{"at":"2026-09-22T06:43:47.351Z","event":"human_action","requestId":"648bc788-35f7-4fd1-895f-758ebe537831","operatorId":"bharat","action":"navigate","method":"GET","url":"http://127.0.0.1:3000/members/[REDACTED]/accounts/savings/panel","source":"browser_request"}
+{"at":"2026-09-22T06:43:51.718Z","event":"handoff_resumed","requestId":"648bc788-35f7-4fd1-895f-758ebe537831","stepId":"open_savings","operatorId":"bharat"}
+{"at":"2026-09-22T06:43:51.752Z","event":"handoff_revalidated","requestId":"648bc788-35f7-4fd1-895f-758ebe537831","stepId":"open_savings","verified":true}
+{"at":"2026-09-22T06:43:51.784Z","event":"checkpoint","stepId":"open_savings","verified":true}
+{"at":"2026-09-22T06:43:51.801Z","event":"step_finished","stepId":"open_savings","outputs":{}}
+{"at":"2026-09-22T06:43:51.803Z","event":"step_started","stepId":"read_balance","action":"read","description":"Read the current balance from the savings details frame"}
+{"at":"2026-09-22T06:43:51.813Z","event":"target_resolved","stepId":"read_balance","identity":{"role":"cell","name":"Current savings balance","frameTitle":"Savings account details"},"strategyIndex":0}
+{"at":"2026-09-22T06:43:51.813Z","event":"policy_decision","stepId":"read_balance","decision":{"kind":"allow"}}
+{"at":"2026-09-22T06:43:51.820Z","event":"step_finished","stepId":"read_balance","outputs":{"balance":{"amount":"[REDACTED]","currency":"USD"}}}
+{"at":"2026-09-22T06:43:51.825Z","event":"success_check","verified":true}
+{"at":"2026-09-22T06:43:51.826Z","event":"compatibility_check","verified":true,"missingMarkers":[]}
+{"at":"2026-09-22T06:43:51.826Z","event":"run_finished","result":{"status":"success","capabilityId":"lookup_savings_balance","outputs":{"balance":{"amount":"[REDACTED]","currency":"USD"}}},"controlEvents":[{"sessionId":"61df529e-cdc6-4783-b378-52827ed2477a","from":"automation","to":"paused","actor":"automation","reason":"An unexpected account notice requires an operator","at":"2026-09-22T06:43:42.383Z"},{"sessionId":"61df529e-cdc6-4783-b378-52827ed2477a","from":"paused","to":"human","actor":"bharat","reason":"operator accepted intervention","at":"2026-09-22T06:43:45.226Z"},{"sessionId":"61df529e-cdc6-4783-b378-52827ed2477a","from":"human","to":"automation","actor":"bharat","reason":"operator returned control","at":"2026-09-22T06:43:51.718Z"},{"sessionId":"61df529e-cdc6-4783-b378-52827ed2477a","from":"automation","to":"finished","actor":"automation","reason":"success","at":"2026-09-22T06:43:51.826Z"}],"modelCalls":0}

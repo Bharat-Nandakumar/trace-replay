@@ -182,11 +182,88 @@
       }
     }
   ],
+  "runtimeConditions": [
+    {
+      "code": "SLOW_LOAD",
+      "description": "Search results are still loading",
+      "when": {
+        "kind": "visible",
+        "target": {
+          "candidates": [
+            {
+              "kind": "text",
+              "text": "Loading member records. Please wait…"
+            }
+          ]
+        }
+      },
+      "classification": "recoverable",
+      "recovery": {
+        "action": "wait_until_absent",
+        "timeoutMs": 5000,
+        "maxAttempts": 1
+      }
+    },
+    {
+      "code": "PERMISSION_DENIED",
+      "description": "The current session cannot view the savings account",
+      "when": {
+        "kind": "visible",
+        "target": {
+          "candidates": [
+            {
+              "kind": "role",
+              "role": "heading",
+              "name": "Access Denied"
+            }
+          ]
+        }
+      },
+      "classification": "failure",
+      "failureCategory": "runtime"
+    },
+    {
+      "code": "SESSION_EXPIRED",
+      "description": "The servicing session expired",
+      "when": {
+        "kind": "visible",
+        "target": {
+          "candidates": [
+            {
+              "kind": "role",
+              "role": "heading",
+              "name": "Session Expired"
+            }
+          ]
+        }
+      },
+      "classification": "failure",
+      "failureCategory": "runtime",
+      "captureScreenshot": true
+    },
+    {
+      "code": "UNEXPECTED_DIALOG",
+      "description": "An unexpected account notice requires an operator",
+      "when": {
+        "kind": "visible",
+        "target": {
+          "candidates": [
+            {
+              "kind": "role",
+              "role": "dialog",
+              "name": "Account notice"
+            }
+          ]
+        }
+      },
+      "classification": "intervention"
+    }
+  ],
   "provenance": {
     "discoverySessionId": "f686cd3d-f768-44db-8f61-ffcad3b77533",
     "provider": "openai",
     "model": "gpt-5.6-terra",
     "sourceLogSha256": "8d26a667819e0d3db81f5a9032212a45f89a9adc959f169d633b0216892bec9d",
-    "compiledAt": "2026-09-21T21:20:54.507Z"
+    "compiledAt": "2026-09-22T05:07:40.478Z"
   }
 }

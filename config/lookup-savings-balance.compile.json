@@ -81,5 +81,35 @@
       "description": "No member matched the supplied ID",
       "when": { "kind": "visible", "target": { "candidates": [{ "kind": "text", "text": "No member found for that ID." }] } }
     }
+  ],
+  "runtimeConditions": [
+    {
+      "code": "SLOW_LOAD",
+      "description": "Search results are still loading",
+      "classification": "recoverable",
+      "when": { "kind": "visible", "target": { "candidates": [{ "kind": "text", "text": "Loading member records. Please wait…" }] } },
+      "recovery": { "action": "wait_until_absent", "timeoutMs": 5000, "maxAttempts": 1 }
+    },
+    {
+      "code": "PERMISSION_DENIED",
+      "description": "The current session cannot view the savings account",
+      "classification": "failure",
+      "failureCategory": "runtime",
+      "when": { "kind": "visible", "target": { "candidates": [{ "kind": "role", "role": "heading", "name": "Access Denied" }] } }
+    },
+    {
+      "code": "SESSION_EXPIRED",
+      "description": "The servicing session expired",
+      "classification": "failure",
+      "failureCategory": "runtime",
+      "captureScreenshot": true,
+      "when": { "kind": "visible", "target": { "candidates": [{ "kind": "role", "role": "heading", "name": "Session Expired" }] } }
+    },
+    {
+      "code": "UNEXPECTED_DIALOG",
+      "description": "An unexpected account notice requires an operator",
+      "classification": "intervention",
+      "when": { "kind": "visible", "target": { "candidates": [{ "kind": "role", "role": "dialog", "name": "Account notice" }] } }
+    }
   ]
 }

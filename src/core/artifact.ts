@@ -34,6 +34,35 @@ export const ConditionSchema = z.discriminatedUnion("kind", [
 ]);
 export type Condition = z.infer<typeof ConditionSchema>;
 
+const RuntimeConditionBase = {
+  code: OutcomeCode,
+  description: NonEmpty,
+  when: ConditionSchema,
+};
+
+export const RuntimeConditionSchema = z.discriminatedUnion("classification", [
+  z.strictObject({
+    ...RuntimeConditionBase,
+    classification: z.literal("recoverable"),
+    recovery: z.strictObject({
+      action: z.literal("wait_until_absent"),
+      timeoutMs: z.number().int().positive().max(60_000),
+      maxAttempts: z.number().int().positive().max(3),
+    }),
+  }),
+  z.strictObject({
+    ...RuntimeConditionBase,
+    classification: z.literal("failure"),
+    failureCategory: z.literal("runtime"),
+    captureScreenshot: z.boolean().optional(),
+  }),
+  z.strictObject({
+    ...RuntimeConditionBase,
+    classification: z.literal("intervention"),
+  }),
+]);
+export type RuntimeCondition = z.infer<typeof RuntimeConditionSchema>;
+
 const InputParameterSchema = z.discriminatedUnion("type", [
   z.strictObject({
     type: z.literal("string"),
@@ -97,6 +126,7 @@ export const CapabilityArtifactSchema = z.strictObject({
   steps: z.array(StepSchema).min(1),
   success: ConditionSchema,
   businessOutcomes: z.array(z.strictObject({ code: OutcomeCode, description: NonEmpty, when: ConditionSchema })),
+  runtimeConditions: z.array(RuntimeConditionSchema).optional(),
   provenance: z.strictObject({
     discoverySessionId: NonEmpty,
     provider: NonEmpty,
@@ -163,6 +193,13 @@ export function parseArtifact(value: unknown): CapabilityArtifact {
   for (const outcome of artifact.businessOutcomes) {
     if (businessCodes.has(outcome.code)) throw new ArtifactSemanticError(`Duplicate business outcome: ${outcome.code}`);
     businessCodes.add(outcome.code);
+  }
+  const runtimeCodes = new Set<string>();
+  for (const condition of artifact.runtimeConditions ?? []) {
+    if (runtimeCodes.has(condition.code) || businessCodes.has(condition.code)) {
+      throw new ArtifactSemanticError(`Duplicate outcome or runtime condition: ${condition.code}`);
+    }
+    runtimeCodes.add(condition.code);
   }
   return artifact;
 }

@@ -11,6 +11,7 @@
     "replay": "tsx src/replay/cli.ts",
     "typecheck": "tsc --noEmit",
     "validate:example": "tsx src/core/validate-example.ts",
+    "audit:evidence": "tsx src/core/audit-evidence.ts",
     "test": "tsx --test tests/*.test.ts",
     "test:browser": "tsx --test tests/*.browser.ts"
   },

@@ -150,6 +150,7 @@ export function compileCapability(options: CompileCapabilityOptions): Capability
     steps,
     success: options.profile.success,
     businessOutcomes: options.profile.businessOutcomes,
+    ...(options.profile.runtimeConditions ? { runtimeConditions: options.profile.runtimeConditions } : {}),
     provenance: {
       discoverySessionId: string(started.sessionId, "Discovery session ID"),
       provider: string(model.provider, "Discovery provider"),

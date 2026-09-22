@@ -4,6 +4,7 @@ import { resolve } from "node:path";
 import { parseArtifact } from "../core/artifact.js";
 import { parsePolicy } from "../core/policy.js";
 import { runReplay } from "./run.js";
+import { createTerminalHandoff } from "../handoff/terminal.js";
 
 function argumentMap(args: string[]): Map<string, string[]> {
   const values = new Map<string, string[]>();
@@ -11,7 +12,7 @@ function argumentMap(args: string[]): Map<string, string[]> {
     const flag = args[index];
     const value = args[index + 1];
     if (!flag?.startsWith("--") || value === undefined || value.startsWith("--")) throw new Error(`Invalid argument near ${flag ?? "end"}`);
-    if (!["--artifact", "--input", "--base-origin", "--log"].includes(flag)) throw new Error(`Unknown option: ${flag}`);
+    if (!["--artifact", "--input", "--base-origin", "--entry-url", "--log", "--handoff", "--operator-id", "--handoff-timeout-ms"].includes(flag)) throw new Error(`Unknown option: ${flag}`);
     values.set(flag, [...(values.get(flag) ?? []), value]);
   }
   return values;
@@ -37,14 +38,26 @@ async function main(): Promise<void> {
   const artifactContent = readFileSync(artifactPath, "utf8");
   const artifact = parseArtifact(JSON.parse(artifactContent));
   const policy = parsePolicy(JSON.parse(readFileSync(new URL("../../config/mock-bank-policy.json", import.meta.url), "utf8")));
+  const handoffMode = values.has("--handoff") ? one("--handoff") : undefined;
+  if (handoffMode && handoffMode !== "interactive") throw new Error("--handoff must be interactive");
+  const operatorId = values.has("--operator-id") ? one("--operator-id") : undefined;
+  if (handoffMode && !operatorId) throw new Error("--operator-id is required for interactive handoff");
+  if (!handoffMode && (operatorId || values.has("--handoff-timeout-ms"))) throw new Error("Operator options require --handoff interactive");
+  const handoffTimeoutMs = values.has("--handoff-timeout-ms") ? Number(one("--handoff-timeout-ms")) : 600_000;
+  if (!Number.isInteger(handoffTimeoutMs) || handoffTimeoutMs < 1000 || handoffTimeoutMs > 3_600_000) {
+    throw new Error("--handoff-timeout-ms must be an integer from 1000 to 3600000");
+  }
   const execution = await runReplay({
     artifact,
     artifactSha256: createHash("sha256").update(artifactContent).digest("hex"),
     inputs,
     baseOrigin: one("--base-origin", "http://127.0.0.1:3000"),
+    entryUrl: values.has("--entry-url") ? one("--entry-url") : undefined,
     policy,
     logPath: resolve(one("--log", `evidence/replay-${new Date().toISOString().replace(/[:.]/g, "-")}.jsonl`)),
     executablePath: process.env.CHROME_PATH || undefined,
+    handoff: handoffMode ? createTerminalHandoff(operatorId!, handoffTimeoutMs) : undefined,
+    headed: Boolean(handoffMode),
   });
   process.stdout.write(`${JSON.stringify(execution.result, null, 2)}\n`);
   if (execution.result.status !== "success") process.exitCode = 1;

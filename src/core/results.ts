@@ -26,6 +26,7 @@ export const RunResultSchema = z.discriminatedUnion("status", [
     expected: z.string().min(1),
     observed: z.string().min(1),
     evidenceRef: z.string().optional(),
+    category: z.enum(["runtime", "possible_drift", "policy", "execution", "intervention"]),
   }),
   z.strictObject({
     status: z.literal("intervention_required"),

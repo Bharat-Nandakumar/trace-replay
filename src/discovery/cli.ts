@@ -4,6 +4,7 @@ import { parsePolicy } from "../core/policy.js";
 import { OpenAIDecisionSource } from "./model.js";
 import { PlaywrightSurface } from "../surfaces/playwright.js";
 import { runDiscovery } from "./run.js";
+import { createTerminalHandoff } from "../handoff/terminal.js";
 
 function usage(): string {
   return `Usage: npm run discover -- --input member_id=10001 [options]
@@ -14,6 +15,9 @@ Options:
   --input K=V       Runtime input; repeat for more inputs
   --log PATH        JSONL evidence path (default: evidence/discovery-<time>.jsonl)
   --model ID        OpenAI model (default: gpt-5.6-terra)
+  --handoff MODE    Set to interactive for same-session operator takeover
+  --operator-id ID  Required operator identity for interactive handoff
+  --handoff-timeout-ms MS  Operator timeout (default: 600000)
   --help            Show this help
 
 Requires OPENAI_API_KEY in the environment. Start the app with npm run app first.\n`;
@@ -27,7 +31,7 @@ async function main(): Promise<void> {
     const flag = args[index];
     const value = args[index + 1];
     if (!flag?.startsWith("--") || value === undefined || value.startsWith("--")) throw new Error(`Invalid argument near ${flag ?? "end"}\n${usage()}`);
-    if (!["--goal", "--entry", "--input", "--log", "--model"].includes(flag)) throw new Error(`Unknown option: ${flag}`);
+    if (!["--goal", "--entry", "--input", "--log", "--model", "--handoff", "--operator-id", "--handoff-timeout-ms"].includes(flag)) throw new Error(`Unknown option: ${flag}`);
     values.set(flag, [...(values.get(flag) ?? []), value]);
   }
   const single = (name: string): string | undefined => {
@@ -52,9 +56,20 @@ async function main(): Promise<void> {
   const logPath = resolve(single("--log") ?? `evidence/discovery-${new Date().toISOString().replace(/[:.]/g, "-")}.jsonl`);
   const policy = parsePolicy(JSON.parse(readFileSync(new URL("../../config/mock-bank-policy.json", import.meta.url), "utf8")));
   const model = new OpenAIDecisionSource(apiKey, single("--model") ?? "gpt-5.6-terra");
+  const handoffMode = single("--handoff");
+  if (handoffMode && handoffMode !== "interactive") throw new Error("--handoff must be interactive");
+  const operatorId = single("--operator-id");
+  if (handoffMode && !operatorId) throw new Error("--operator-id is required for interactive handoff");
+  if (!handoffMode && (operatorId || single("--handoff-timeout-ms"))) throw new Error("Operator options require --handoff interactive");
+  const handoffTimeoutMs = single("--handoff-timeout-ms") ? Number(single("--handoff-timeout-ms")) : 600_000;
+  if (!Number.isInteger(handoffTimeoutMs) || handoffTimeoutMs < 1000 || handoffTimeoutMs > 3_600_000) {
+    throw new Error("--handoff-timeout-ms must be an integer from 1000 to 3600000");
+  }
   const result = await runDiscovery({
     goal, entryUrl, inputs, policy, model, logPath, redactionValues: [apiKey],
     executablePath: process.env.CHROME_PATH || undefined,
+    handoff: handoffMode ? createTerminalHandoff(operatorId!, handoffTimeoutMs) : undefined,
+    headed: Boolean(handoffMode),
     verifyCompletion: async (surface: PlaywrightSurface, readings) => {
       const accountHeading = await surface.resolve({ candidates: [{ kind: "role", role: "heading", name: "Savings Account" }] });
       const balanceHeading = await surface.resolve({ frame: { title: "Savings account details" }, candidates: [{ kind: "role", role: "heading", name: "Account Balance" }] });

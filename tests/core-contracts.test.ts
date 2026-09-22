@@ -203,7 +203,7 @@ test("run results have distinct success, business, failure, and intervention sha
   }).status, "business_outcome");
   assert.equal(RunResultSchema.parse({
     status: "failure", capabilityId: "lookup_savings_balance", code: "PERMISSION_DENIED", stepId: "open_savings",
-    expected: "Savings Account", observed: "Access Denied",
+    expected: "Savings Account", observed: "Access Denied", category: "runtime",
   }).status, "failure");
   assert.equal(RunResultSchema.parse({
     status: "intervention_required", capabilityId: "lookup_savings_balance", requestId: "request-1",

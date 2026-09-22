@@ -1,0 +1,23 @@
+{"at":"2026-09-22T05:18:06.663Z","event":"run_started","mode":"replay","decisionSource":"artifact","modelCalls":0,"capabilityId":"lookup_savings_balance","capabilityVersion":"1.0.0","artifactSha256":"2d37fd1b1bb466f3243d57765fd070df6fcfc27b9f9320b1ef99e146b67aec2d","inputNames":["member_id"],"entryUrl":"http://127.0.0.1:3000/start?scenario=session_expired"}
+{"at":"2026-09-22T05:18:06.664Z","event":"input_validation","valid":true}
+{"at":"2026-09-22T05:18:09.515Z","event":"policy_decision","stepId":"entry","decision":{"kind":"allow"}}
+{"at":"2026-09-22T05:18:09.831Z","event":"step_started","stepId":"enter_member_id","action":"fill","description":"Enter the invocation's member ID on Member Search"}
+{"at":"2026-09-22T05:18:09.884Z","event":"target_resolved","stepId":"enter_member_id","identity":{"role":"textbox","name":"Member ID"},"strategyIndex":0}
+{"at":"2026-09-22T05:18:09.885Z","event":"policy_decision","stepId":"enter_member_id","decision":{"kind":"allow"}}
+{"at":"2026-09-22T05:18:09.934Z","event":"step_finished","stepId":"enter_member_id","outputs":{}}
+{"at":"2026-09-22T05:18:09.965Z","event":"step_started","stepId":"search_member","action":"click","description":"Submit the member search"}
+{"at":"2026-09-22T05:18:10.008Z","event":"target_resolved","stepId":"search_member","identity":{"role":"button","name":"Search"},"strategyIndex":0}
+{"at":"2026-09-22T05:18:10.010Z","event":"policy_decision","stepId":"search_member","decision":{"kind":"allow"}}
+{"at":"2026-09-22T05:18:10.217Z","event":"checkpoint","stepId":"search_member","verified":true}
+{"at":"2026-09-22T05:18:10.248Z","event":"step_finished","stepId":"search_member","outputs":{}}
+{"at":"2026-09-22T05:18:10.288Z","event":"step_started","stepId":"open_member","action":"click","description":"Open the matching member record"}
+{"at":"2026-09-22T05:18:10.303Z","event":"target_resolved","stepId":"open_member","identity":{"role":"link","name":"Open member"},"strategyIndex":0}
+{"at":"2026-09-22T05:18:10.304Z","event":"policy_decision","stepId":"open_member","decision":{"kind":"allow"}}
+{"at":"2026-09-22T05:18:10.585Z","event":"checkpoint","stepId":"open_member","verified":true}
+{"at":"2026-09-22T05:18:10.591Z","event":"step_finished","stepId":"open_member","outputs":{}}
+{"at":"2026-09-22T05:18:10.597Z","event":"step_started","stepId":"open_savings","action":"click","description":"Open the member's savings account"}
+{"at":"2026-09-22T05:18:10.611Z","event":"target_resolved","stepId":"open_savings","identity":{"role":"link","name":"Open savings account"},"strategyIndex":0}
+{"at":"2026-09-22T05:18:10.611Z","event":"policy_decision","stepId":"open_savings","decision":{"kind":"allow"}}
+{"at":"2026-09-22T05:18:10.751Z","event":"runtime_condition_detected","stepId":"open_savings","code":"SESSION_EXPIRED","classification":"failure","currentUrl":"http://127.0.0.1:3000/session-expired"}
+{"at":"2026-09-22T05:18:11.091Z","event":"diagnostic_evidence","stepId":"open_savings","code":"SESSION_EXPIRED","expected":"Complete step open_savings","observedUrl":"http://127.0.0.1:3000/session-expired","observed":"URL: http://127.0.0.1:3000/session-expired\n- banner:\n  - strong: Northstar Credit Union\n  - text: Operations Console\n- navigation \"Primary navigation\":\n  - text: SERVICING\n  - link \"Member Search\":\n    - /url: /members/search\n- main:\n  - heading \"Session Expired\" [level=1]\n  - alert: Your servicing session has expired.\n  - paragraph:\n    - link \"Start a new synthetic session\":\n      - /url: /start","screenshotRef":"evidence/phase-6-session-expired-session_expired.png"}
+{"at":"2026-09-22T05:18:11.093Z","event":"run_finished","result":{"status":"failure","capabilityId":"lookup_savings_balance","category":"runtime","code":"SESSION_EXPIRED","stepId":"open_savings","expected":"Complete step open_savings","observed":"The servicing session expired","evidenceRef":"evidence/phase-6-session-expired-session_expired.png"},"controlEvents":[{"sessionId":"7ea25a22-e916-4ad4-b324-5ab7a03be9d7","from":"automation","to":"finished","actor":"automation","reason":"failure","at":"2026-09-22T05:18:11.093Z"}],"modelCalls":0}

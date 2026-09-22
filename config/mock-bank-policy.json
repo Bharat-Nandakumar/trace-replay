@@ -7,6 +7,7 @@
     "^/members/results$",
     "^/members/[0-9]{5}$",
     "^/members/[0-9]{5}/accounts/savings$",
+    "^/members/[0-9]{5}/accounts/savings/dismiss$",
     "^/members/[0-9]{5}/accounts/savings/panel$",
     "^/session-expired$",
     "^/assets/[^/]+$"

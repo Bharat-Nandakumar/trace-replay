@@ -1,0 +1,32 @@
+{"at":"2026-09-22T05:09:54.789Z","event":"run_started","mode":"replay","decisionSource":"artifact","modelCalls":0,"capabilityId":"lookup_savings_balance","capabilityVersion":"1.0.0","artifactSha256":"2d37fd1b1bb466f3243d57765fd070df6fcfc27b9f9320b1ef99e146b67aec2d","inputNames":["member_id"],"entryUrl":"http://127.0.0.1:3000/start?scenario=slow_load"}
+{"at":"2026-09-22T05:09:54.790Z","event":"input_validation","valid":true}
+{"at":"2026-09-22T05:09:55.227Z","event":"policy_decision","stepId":"entry","decision":{"kind":"allow"}}
+{"at":"2026-09-22T05:09:55.304Z","event":"step_started","stepId":"enter_member_id","action":"fill","description":"Enter the invocation's member ID on Member Search"}
+{"at":"2026-09-22T05:09:55.315Z","event":"target_resolved","stepId":"enter_member_id","identity":{"role":"textbox","name":"Member ID"},"strategyIndex":0}
+{"at":"2026-09-22T05:09:55.315Z","event":"policy_decision","stepId":"enter_member_id","decision":{"kind":"allow"}}
+{"at":"2026-09-22T05:09:55.323Z","event":"step_finished","stepId":"enter_member_id","outputs":{}}
+{"at":"2026-09-22T05:09:55.325Z","event":"step_started","stepId":"search_member","action":"click","description":"Submit the member search"}
+{"at":"2026-09-22T05:09:55.327Z","event":"target_resolved","stepId":"search_member","identity":{"role":"button","name":"Search"},"strategyIndex":0}
+{"at":"2026-09-22T05:09:55.327Z","event":"policy_decision","stepId":"search_member","decision":{"kind":"allow"}}
+{"at":"2026-09-22T05:09:55.402Z","event":"runtime_condition_detected","stepId":"search_member","code":"SLOW_LOAD","classification":"recoverable","currentUrl":"http://127.0.0.1:3000/members/results"}
+{"at":"2026-09-22T05:09:55.402Z","event":"recovery_started","stepId":"search_member","code":"SLOW_LOAD","attempt":1,"action":"wait_until_absent","timeoutMs":5000}
+{"at":"2026-09-22T05:09:57.494Z","event":"recovery_finished","stepId":"search_member","code":"SLOW_LOAD","attempt":1,"recovered":true}
+{"at":"2026-09-22T05:09:57.515Z","event":"checkpoint","stepId":"search_member","verified":true}
+{"at":"2026-09-22T05:09:57.520Z","event":"step_finished","stepId":"search_member","outputs":{}}
+{"at":"2026-09-22T05:09:57.526Z","event":"step_started","stepId":"open_member","action":"click","description":"Open the matching member record"}
+{"at":"2026-09-22T05:09:57.531Z","event":"target_resolved","stepId":"open_member","identity":{"role":"link","name":"Open member"},"strategyIndex":0}
+{"at":"2026-09-22T05:09:57.531Z","event":"policy_decision","stepId":"open_member","decision":{"kind":"allow"}}
+{"at":"2026-09-22T05:09:57.647Z","event":"checkpoint","stepId":"open_member","verified":true}
+{"at":"2026-09-22T05:09:57.651Z","event":"step_finished","stepId":"open_member","outputs":{}}
+{"at":"2026-09-22T05:09:57.655Z","event":"step_started","stepId":"open_savings","action":"click","description":"Open the member's savings account"}
+{"at":"2026-09-22T05:09:57.660Z","event":"target_resolved","stepId":"open_savings","identity":{"role":"link","name":"Open savings account"},"strategyIndex":0}
+{"at":"2026-09-22T05:09:57.660Z","event":"policy_decision","stepId":"open_savings","decision":{"kind":"allow"}}
+{"at":"2026-09-22T05:09:57.778Z","event":"checkpoint","stepId":"open_savings","verified":true}
+{"at":"2026-09-22T05:09:57.925Z","event":"step_finished","stepId":"open_savings","outputs":{}}
+{"at":"2026-09-22T05:09:57.957Z","event":"step_started","stepId":"read_balance","action":"read","description":"Read the current balance from the savings details frame"}
+{"at":"2026-09-22T05:09:58.030Z","event":"target_resolved","stepId":"read_balance","identity":{"role":"cell","name":"Current savings balance","frameTitle":"Savings account details"},"strategyIndex":0}
+{"at":"2026-09-22T05:09:58.034Z","event":"policy_decision","stepId":"read_balance","decision":{"kind":"allow"}}
+{"at":"2026-09-22T05:09:58.058Z","event":"step_finished","stepId":"read_balance","outputs":{"balance":{"amount":"[REDACTED]","currency":"USD"}}}
+{"at":"2026-09-22T05:09:58.086Z","event":"success_check","verified":true}
+{"at":"2026-09-22T05:09:58.086Z","event":"compatibility_check","verified":true,"missingMarkers":[]}
+{"at":"2026-09-22T05:09:58.087Z","event":"run_finished","result":{"status":"success","capabilityId":"lookup_savings_balance","outputs":{"balance":{"amount":"[REDACTED]","currency":"USD"}}},"controlEvents":[{"sessionId":"e713c9ee-2882-49dc-a736-122398ccdda5","from":"automation","to":"finished","actor":"automation","reason":"success","at":"2026-09-22T05:09:58.087Z"}],"modelCalls":0}

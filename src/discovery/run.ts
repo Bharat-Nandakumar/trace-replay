@@ -8,6 +8,9 @@ import { redactForEvidence } from "../core/redaction.js";
 import { requireUniqueTarget, TargetResolutionError } from "../core/surface.js";
 import type { DecisionSource, ModelObservation } from "./model.js";
 import { PlaywrightSurface } from "../surfaces/playwright.js";
+import { installHumanActionAudit } from "../handoff/browser-audit.js";
+import { conductHandoff } from "../handoff/coordinator.js";
+import type { HandoffHandler } from "../handoff/types.js";
 
 export type DiscoveryResult =
   | { status: "success"; readings: string[]; actions: number; logPath: string }
@@ -26,6 +29,8 @@ export type DiscoveryOptions = {
   maxActions?: number;
   maxDurationMs?: number;
   redactionValues?: string[];
+  handoff?: HandoffHandler;
+  headed?: boolean;
 };
 
 function scrubEvidence(value: unknown, sensitiveValues: readonly string[]): unknown {
@@ -70,32 +75,67 @@ export async function runDiscovery(options: DiscoveryOptions): Promise<Discovery
   let surface: PlaywrightSurface | undefined;
   let requestViolation: string | undefined;
   let dialogViolation: string | undefined;
+  let activeInterventionRequestId: string | undefined;
   await mkdir(dirname(options.logPath), { recursive: true });
   await (await open(options.logPath, "wx", 0o600)).close();
 
   const emit = async (value: unknown): Promise<void> => record(options.logPath, { at: new Date().toISOString(), ...value as object }, sensitiveValues);
   const terminate = async (result: DiscoveryResult): Promise<DiscoveryResult> => {
-    session.finish("automation", result.status);
+    const actor = session.owner === "human" ? options.handoff?.operatorId ?? "operator"
+      : session.owner === "paused" ? "handoff-coordinator" : "automation";
+    session.finish(actor, result.status);
     const { logPath: _localPath, ...persistedResult } = result;
     await emit({ event: "run_finished", result: persistedResult, controlEvents: session.events });
     return result;
+  };
+  const requestHandoff = async (reason: string, code: string): Promise<"resumed" | DiscoveryResult> => {
+    if (!page || !surface) return { status: "failure", code: "HANDOFF_INVALID", reason: "Browser session is unavailable", actions, logPath: options.logPath };
+    const before = await surface.observe();
+    const requestId = randomUUID();
+    activeInterventionRequestId = requestId;
+    const resolution = await conductHandoff({
+      session, handler: options.handoff, page, requestId, reason, code, emit,
+      revalidate: async () => {
+        const decision = evaluateUrl(options.policy, page!.url());
+        if (decision.kind !== "allow") return false;
+        const after = await surface!.observe();
+        return `${after.location}\n${after.accessibilitySummary}` !== `${before.location}\n${before.accessibilitySummary}`;
+      },
+    });
+    activeInterventionRequestId = undefined;
+    if (resolution === "resumed") return "resumed";
+    if (resolution === "unavailable") return { status: "intervention_required", reason, actions, logPath: options.logPath };
+    const resultCode = resolution === "aborted" ? "OPERATOR_ABORTED"
+      : resolution === "timeout" ? "HANDOFF_TIMEOUT"
+      : resolution === "unresolved" ? "INTERVENTION_UNRESOLVED" : "HANDOFF_INVALID";
+    return { status: "failure", code: resultCode, reason: `Handoff ended with ${resolution}`, actions, logPath: options.logPath };
   };
 
   try {
     const entryDecision = evaluateUrl(options.policy, options.entryUrl);
     if (entryDecision.kind !== "allow") throw new PolicyBlockError(entryDecision);
-    browser = await chromium.launch({ headless: true, executablePath: options.executablePath });
+    browser = await chromium.launch({ headless: !(options.headed ?? Boolean(options.handoff)), executablePath: options.executablePath });
     const context = await browser.newContext({ viewport: { width: 1100, height: 800 }, serviceWorkers: "block" });
     page = await context.newPage();
     const livePage = page;
     surface = new PlaywrightSurface(livePage);
+    if (options.handoff) await installHumanActionAudit(context, livePage, session, emit, () => activeInterventionRequestId);
 
     await context.route("**/*", async (route) => {
       try {
+        if (session.owner === "human" && route.request().isNavigationRequest()) {
+          await emit({ event: "human_action", requestId: activeInterventionRequestId,
+            operatorId: options.handoff?.operatorId, action: "navigate",
+            method: route.request().method(), url: route.request().url(), source: "browser_request" });
+        }
         requireAllowedRequest(options.policy, route.request().url());
         await route.continue();
       } catch (error) {
         requestViolation = error instanceof Error ? error.message : String(error);
+        if (session.owner === "human") {
+          await emit({ event: "human_request_blocked", requestId: activeInterventionRequestId,
+            operatorId: options.handoff?.operatorId, url: route.request().url(), reason: requestViolation });
+        }
         await route.abort("blockedbyclient").catch(() => {});
       }
     });
@@ -137,8 +177,13 @@ export async function runDiscovery(options: DiscoveryOptions): Promise<Discovery
       }
 
       if (decision.action === "request_human") {
-        session.pause(decision.reason);
-        return terminate({ status: "intervention_required", reason: decision.reason, actions, logPath: options.logPath });
+        const handoff = await requestHandoff(decision.reason, "MODEL_REQUESTED_HUMAN");
+        if (handoff === "resumed") {
+          recentActions.push(`request_human: ${decision.reason} → operator resolved and returned control`);
+          previousSignature = "";
+          continue;
+        }
+        return terminate(handoff);
       }
       if (decision.action === "finish") {
         const verified = readings.length > 0 && await options.verifyCompletion(surface, readings);
@@ -211,12 +256,14 @@ export async function runDiscovery(options: DiscoveryOptions): Promise<Discovery
         const evidence = await surface.captureFailureEvidence().catch(() => "Snapshot unavailable");
         await emit({ event: "action_failed", actionIndex: actions, reason, evidence });
         if (error instanceof PolicyBlockError && error.decision.kind === "human_required") {
-          session.pause(reason);
-          return terminate({ status: "intervention_required", reason, actions, logPath: options.logPath });
+          const handoff = await requestHandoff(reason, error.decision.code);
+          if (handoff === "resumed") { recentActions.push(`blocked action → operator resolved and returned control`); continue; }
+          return terminate(handoff);
         }
         if (error instanceof TargetResolutionError || dialogViolation) {
-          session.pause(reason);
-          return terminate({ status: "intervention_required", reason, actions, logPath: options.logPath });
+          const handoff = await requestHandoff(reason, error instanceof TargetResolutionError ? error.code : "UNEXPECTED_DIALOG");
+          if (handoff === "resumed") { recentActions.push(`failed action → operator resolved and returned control`); dialogViolation = undefined; continue; }
+          return terminate(handoff);
         }
         return terminate({ status: "failure", code: error instanceof PolicyBlockError ? error.decision.code : "ACTION_FAILED", reason, actions, logPath: options.logPath });
       }
