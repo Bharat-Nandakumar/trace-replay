@@ -2,7 +2,14 @@ import type { Frame, Locator, Page } from "playwright";
 import type { CapabilityStep, Target } from "../core/artifact.js";
 import type { ControlIdentity } from "../core/policy.js";
 import type { SurfaceAdapter, SurfaceObservation, TargetResolution } from "../core/surface.js";
-import type { ModelObservation } from "./model.js";
+
+export type BrowserModelObservation = {
+  url: string;
+  visibleText: string;
+  accessibilitySummary: string;
+  screenshot: Buffer;
+  observedLinks: string[];
+};
 
 type Scope = Page | Frame;
 
@@ -88,7 +95,7 @@ export class PlaywrightSurface implements SurfaceAdapter<Locator> {
     return { location: this.page.url(), visibleText: visibleText.slice(0, 5000), accessibilitySummary: parts.join("\n").slice(0, 8000) };
   }
 
-  async modelObservation(): Promise<ModelObservation> {
+  async modelObservation(): Promise<BrowserModelObservation> {
     const observation = await this.observe();
     const observedLinks = await this.page.locator("a[href]").evaluateAll((links) => links.map((link) => (link as HTMLAnchorElement).href));
     return {

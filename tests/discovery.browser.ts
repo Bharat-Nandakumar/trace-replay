@@ -25,6 +25,7 @@ const flow = [
   proposal("click", { kind: "role", role: "button", name: "Search" }),
   proposal("click", { kind: "role", role: "link", name: "Open member" }),
   proposal("click", { kind: "role", role: "link", name: "Open savings account" }),
+  proposal("finish"),
   proposal("read", { kind: "table_value", rowHeader: "Current savings balance", frameTitle: "Savings account details" }),
 ];
 
@@ -35,7 +36,18 @@ test("discovery runner drives the UI through its policy gate and writes redacted
     const baseUrl = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
     const path = join(await mkdtemp(join(tmpdir(), "trace-replay-discovery-")), "run.jsonl");
     let index = 0;
-    const model: DecisionSource = { decide: async () => ({ decision: flow[index++] ?? proposal("finish") }) };
+    const model: DecisionSource = {
+      provider: "scripted-test",
+      model: "fixed-flow",
+      decide: async () => {
+        const decisionIndex = index++;
+        return {
+          decision: flow[decisionIndex] ?? proposal("finish"),
+          responseId: `test-response-${decisionIndex}`,
+          usage: { inputTokens: 100, outputTokens: 20, totalTokens: 120 },
+        };
+      },
+    };
     const result = await runDiscovery({
       goal: "Look up member {member_id} and return savings balance",
       entryUrl: `${baseUrl}/start`,
@@ -51,6 +63,9 @@ test("discovery runner drives the UI through its policy gate and writes redacted
     const log = await readFile(path, "utf8");
     assert.match(log, /model_decision/);
     assert.match(log, /target_resolved/);
+    assert.match(log, /"provider":"scripted-test","id":"fixed-flow"/);
+    assert.match(log, /"responseId":"test-response-0"/);
+    assert.match(log, /"inputTokens":100,"outputTokens":20,"totalTokens":120/);
     assert.doesNotMatch(log, /10001|1250\.75|data:image/);
   } finally {
     await new Promise<void>((resolve, reject) => server.close((error) => error ? reject(error) : resolve()));
@@ -65,7 +80,7 @@ test("discovery policy stops a model-proposed Close Account click before activat
     const path = join(await mkdtemp(join(tmpdir(), "trace-replay-risk-")), "run.jsonl");
     const decisions = [...flow.slice(0, 4), proposal("click", { kind: "role", role: "button", name: "Close Account" })];
     let index = 0;
-    const model: DecisionSource = { decide: async () => ({ decision: decisions[index++] }) };
+    const model: DecisionSource = { provider: "scripted-test", model: "risky-flow", decide: async () => ({ decision: decisions[index++] }) };
     const result = await runDiscovery({
       goal: "Attempt a risky control",
       entryUrl: `${baseUrl}/start`, inputs: { member_id: "10001" },

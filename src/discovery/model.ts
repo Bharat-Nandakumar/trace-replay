@@ -1,13 +1,8 @@
 import OpenAI from "openai";
 import { decisionTool, parseDecision, type DiscoveryDecision } from "./decision.js";
+import type { BrowserModelObservation } from "../surfaces/playwright.js";
 
-export type ModelObservation = {
-  url: string;
-  visibleText: string;
-  accessibilitySummary: string;
-  screenshot: Buffer;
-  observedLinks: string[];
-};
+export type ModelObservation = BrowserModelObservation;
 
 export type DecisionContext = {
   goal: string;
@@ -16,15 +11,22 @@ export type DecisionContext = {
   recentActions: string[];
 };
 
-export type ModelDecision = { decision: DiscoveryDecision; usage?: { inputTokens: number; outputTokens: number } };
+export type ModelDecision = {
+  decision: DiscoveryDecision;
+  responseId?: string;
+  usage?: { inputTokens: number; outputTokens: number; totalTokens: number };
+};
 export interface DecisionSource {
+  readonly provider?: string;
+  readonly model?: string;
   decide(context: DecisionContext): Promise<ModelDecision>;
 }
 
-const instructions = `You are discovering a UI workflow in a synthetic bank application. Use only the current browser observation and visible UI controls. Propose one action per turn through propose_action. Never invent an unobserved URL or use an application backend/API. Fill fields by referring to a supplied input name, never by writing a literal value. Prefer unique accessible role and name. For values in tables use table_value and the row header. Include a frameTitle when the target is inside a frame. Wait only when visible loading is in progress. Request human help for risky controls, unexpected dialogs, uncertainty, or unsafe actions. Finish only after reading the requested result. Your reason must be one short statement about visible evidence, not hidden reasoning.`;
+const instructions = `You are discovering a UI workflow in a synthetic bank application. Use only the current browser observation and visible UI controls. Propose one action per turn through propose_action. Never invent an unobserved URL or use an application backend/API. Fill fields by referring to a supplied input name, never by writing a literal value. Prefer unique accessible role and name. For values in tables use table_value and the row header. Include a frameTitle when the target is inside a frame. Wait only when visible loading is in progress. Request human help for risky controls, unexpected dialogs, uncertainty, or unsafe actions. Seeing an answer in the screenshot or page summary does not count as extracting it: you must propose a read action for the requested result before proposing finish. Your reason must be one short statement about visible evidence, not hidden reasoning.`;
 
 export class OpenAIDecisionSource implements DecisionSource {
   private readonly client: OpenAI;
+  readonly provider = "openai";
   readonly model: string;
 
   constructor(apiKey: string, model = "gpt-5.6-terra") {
@@ -62,7 +64,12 @@ export class OpenAIDecisionSource implements DecisionSource {
     const decision = parseDecision(JSON.parse(calls[0].arguments));
     return {
       decision,
-      usage: response.usage ? { inputTokens: response.usage.input_tokens, outputTokens: response.usage.output_tokens } : undefined,
+      responseId: response.id,
+      usage: response.usage ? {
+        inputTokens: response.usage.input_tokens,
+        outputTokens: response.usage.output_tokens,
+        totalTokens: response.usage.total_tokens,
+      } : undefined,
     };
   }
 }

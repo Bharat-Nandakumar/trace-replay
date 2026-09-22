@@ -2,7 +2,7 @@
 
 AI-powered computer-use automation that turns discovered UI workflows into reusable, deterministic replays—with safety guardrails and human takeover.
 
-The project is being built in phases. The local synthetic bank app, capability/safety contracts, and model-driven discovery code are implemented. A genuine OpenAI discovery run is pending a local API key; generated artifacts, replay, and human handoff come later. See [PLAN.md](PLAN.md), the [agreed demo scope](docs/phase-1-scope.md), the [Phase 3 contract](docs/phase-3-contract.md), and the [Phase 4 design](docs/phase-4-discovery.md).
+The project is being built in phases. The local synthetic bank app, capability/safety contracts, genuine model-driven discovery, generated capability, and deterministic replay are implemented. Runtime recovery and human handoff come later. See [PLAN.md](PLAN.md), the [agreed demo scope](docs/phase-1-scope.md), the [Phase 3 contract](docs/phase-3-contract.md), the [Phase 4 design](docs/phase-4-discovery.md), and the [Phase 5 replay design](docs/phase-5-replay.md).
 
 ## Run the local bank app
 
@@ -54,4 +54,27 @@ export OPENAI_API_KEY='your-local-key'
 npm run discover -- --input member_id=10001
 ```
 
-The runner uses `gpt-5.6-terra` by default, opens `http://127.0.0.1:3000/start`, and writes redacted JSONL evidence under `evidence/`. It sends the current UI screenshot and compact page summary to the model for each decision. Set `CHROME_PATH` if using an existing Chrome installation. `npm run discover -- --help` lists the goal, entry, model, and log options. The key is read from the environment and must not be committed or pasted into the project. The live discovery run has not happened yet.
+The runner uses `gpt-5.6-terra` by default, opens `http://127.0.0.1:3000/start`, and writes redacted JSONL evidence under `evidence/`. It sends the current UI screenshot and compact page summary to the model for each decision. Set `CHROME_PATH` if using an existing Chrome installation. `npm run discover -- --help` lists the goal, entry, model, and log options. The key is read from the environment and must not be committed or pasted into the project. The authoritative genuine run is `evidence/discovery-gpt-5-6-terra-2026-09-20-final.jsonl`.
+
+## Compile and replay the discovered capability
+
+Compile the verified discovery trace with the reviewed capability contract:
+
+```bash
+npm run compile:capability -- \
+  --log evidence/discovery-gpt-5-6-terra-2026-09-20-final.jsonl \
+  --profile config/lookup-savings-balance.compile.json \
+  --output capabilities/lookup-savings-balance.json \
+  --input member_id=10001
+```
+
+With the app running, replay the generated artifact for a different member without an OpenAI key:
+
+```bash
+env -u OPENAI_API_KEY npm run replay -- \
+  --artifact capabilities/lookup-savings-balance.json \
+  --input member_id=10002 \
+  --log evidence/replay-member-10002.jsonl
+```
+
+Replay follows the artifact with Playwright, verifies each checkpoint, and returns a typed USD money value. The committed replay evidence records `decisionSource: "artifact"` and `modelCalls: 0` and redacts the runtime input and output.

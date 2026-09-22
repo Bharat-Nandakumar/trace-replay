@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { parsePolicy } from "../core/policy.js";
 import { OpenAIDecisionSource } from "./model.js";
-import { PlaywrightSurface } from "./playwright-surface.js";
+import { PlaywrightSurface } from "../surfaces/playwright.js";
 import { runDiscovery } from "./run.js";
 
 function usage(): string {

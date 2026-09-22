@@ -7,7 +7,7 @@ import { evaluateAction, evaluateUrl, executeWithPolicy, PolicyBlockError, requi
 import { redactForEvidence } from "../core/redaction.js";
 import { requireUniqueTarget, TargetResolutionError } from "../core/surface.js";
 import type { DecisionSource, ModelObservation } from "./model.js";
-import { PlaywrightSurface } from "./playwright-surface.js";
+import { PlaywrightSurface } from "../surfaces/playwright.js";
 
 export type DiscoveryResult =
   | { status: "success"; readings: string[]; actions: number; logPath: string }
@@ -102,7 +102,15 @@ export async function runDiscovery(options: DiscoveryOptions): Promise<Discovery
     livePage.on("popup", (popup) => { requestViolation = "Unexpected popup"; void popup.close(); });
     livePage.on("dialog", (dialog) => { dialogViolation = `Unexpected browser dialog: ${dialog.type()}`; void dialog.dismiss(); });
 
-    await emit({ event: "run_started", goal: options.goal, entryUrl: options.entryUrl, inputNames: Object.keys(options.inputs), sessionId: session.sessionId, limits: { maxActions, maxDurationMs } });
+    await emit({
+      event: "run_started",
+      goal: options.goal,
+      entryUrl: options.entryUrl,
+      inputNames: Object.keys(options.inputs),
+      sessionId: session.sessionId,
+      model: { provider: options.model.provider ?? "custom", id: options.model.model ?? "unspecified" },
+      limits: { maxActions, maxDurationMs },
+    });
     const entryIntent: ActionIntent = {
       mode: "discovery", type: "navigate", currentUrl: "about:blank", destinationUrl: options.entryUrl,
     };
@@ -122,8 +130,8 @@ export async function runDiscovery(options: DiscoveryOptions): Promise<Discovery
         return terminate({ status: "intervention_required", reason: "No visible progress after three decisions", actions, logPath: options.logPath });
       }
       await emit({ event: "observation", actionIndex: actions, state: observationForLog(observation) });
-      const { decision, usage } = await options.model.decide({ goal: options.goal, inputNames: Object.keys(options.inputs), observation, recentActions });
-      await emit({ event: "model_decision", actionIndex: actions, decision, usage });
+      const { decision, usage, responseId } = await options.model.decide({ goal: options.goal, inputNames: Object.keys(options.inputs), observation, recentActions });
+      await emit({ event: "model_decision", actionIndex: actions, decision, responseId, usage });
       if (Date.now() - started >= maxDurationMs) {
         return terminate({ status: "failure", code: "TIME_LIMIT", reason: "Discovery exceeded its configured duration", actions, logPath: options.logPath });
       }
@@ -135,7 +143,10 @@ export async function runDiscovery(options: DiscoveryOptions): Promise<Discovery
       if (decision.action === "finish") {
         const verified = readings.length > 0 && await options.verifyCompletion(surface, readings);
         await emit({ event: "completion_check", verified, readings });
-        if (!verified) return terminate({ status: "failure", code: "UNVERIFIED_COMPLETION", reason: "The final UI state or read value did not verify", actions, logPath: options.logPath });
+        if (!verified) {
+          recentActions.push("finish rejected: no verified read matched the current live UI; propose the required read action before finish");
+          continue;
+        }
         return terminate({ status: "success", readings, actions, logPath: options.logPath });
       }
 

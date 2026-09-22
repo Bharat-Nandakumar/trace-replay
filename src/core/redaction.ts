@@ -1,7 +1,7 @@
 import type { CapabilityArtifact } from "./artifact.js";
 
 const REDACTED = "[REDACTED]";
-const SECRET_KEY = /(?:api[_-]?key|token|password|secret|credential)/i;
+const SECRET_KEY = /(?:api[_-]?key|password|secret|credential)|^(?:token|access[_-]?token|refresh[_-]?token|auth[_-]?token|bearer[_-]?token)$/i;
 
 /** Redact known runtime values and secret-named fields before any event is persisted. */
 export function redactForEvidence(value: unknown, sensitiveValues: readonly string[] = []): unknown {

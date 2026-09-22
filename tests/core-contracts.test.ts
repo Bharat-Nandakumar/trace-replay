@@ -170,6 +170,9 @@ test("evidence redaction masks nested runtime values and secret fields", () => {
     url: "http://localhost/members/10001",
     outputs: { balance: "1250.75" },
     apiKey: "sk-example",
+    token: "bearer-example",
+    inputTokens: 1234,
+    outputTokens: 56,
     count: 10001,
   }, ["10001", "1250.75"]);
   assert.deepEqual(redacted, {
@@ -177,6 +180,9 @@ test("evidence redaction masks nested runtime values and secret fields", () => {
     url: "http://localhost/members/[REDACTED]",
     outputs: { balance: "[REDACTED]" },
     apiKey: "[REDACTED]",
+    token: "[REDACTED]",
+    inputTokens: 1234,
+    outputTokens: 56,
     count: "[REDACTED]",
   });
   const artifact = parseArtifact(mutableExample());

@@ -1,0 +1,29 @@
+{"at":"2026-09-21T21:56:10.555Z","event":"run_started","mode":"replay","decisionSource":"artifact","modelCalls":0,"capabilityId":"lookup_savings_balance","capabilityVersion":"1.0.0","artifactSha256":"561933cb6b913642804a5708be0e7355184af262bd7340b1c0d37e94991ed10e","inputNames":["member_id"]}
+{"at":"2026-09-21T21:56:10.556Z","event":"input_validation","valid":true}
+{"at":"2026-09-21T21:56:18.801Z","event":"policy_decision","stepId":"entry","decision":{"kind":"allow"}}
+{"at":"2026-09-21T21:56:19.016Z","event":"step_started","stepId":"enter_member_id","action":"fill","description":"Enter the invocation's member ID on Member Search"}
+{"at":"2026-09-21T21:56:19.039Z","event":"target_resolved","stepId":"enter_member_id","identity":{"role":"textbox","name":"Member ID"},"strategyIndex":0}
+{"at":"2026-09-21T21:56:19.040Z","event":"policy_decision","stepId":"enter_member_id","decision":{"kind":"allow"}}
+{"at":"2026-09-21T21:56:19.069Z","event":"step_finished","stepId":"enter_member_id","outputs":{}}
+{"at":"2026-09-21T21:56:19.070Z","event":"step_started","stepId":"search_member","action":"click","description":"Submit the member search"}
+{"at":"2026-09-21T21:56:19.073Z","event":"target_resolved","stepId":"search_member","identity":{"role":"button","name":"Search"},"strategyIndex":0}
+{"at":"2026-09-21T21:56:19.073Z","event":"policy_decision","stepId":"search_member","decision":{"kind":"allow"}}
+{"at":"2026-09-21T21:56:19.340Z","event":"checkpoint","stepId":"search_member","verified":true}
+{"at":"2026-09-21T21:56:19.345Z","event":"step_finished","stepId":"search_member","outputs":{}}
+{"at":"2026-09-21T21:56:19.346Z","event":"step_started","stepId":"open_member","action":"click","description":"Open the matching member record"}
+{"at":"2026-09-21T21:56:19.348Z","event":"target_resolved","stepId":"open_member","identity":{"role":"link","name":"Open member"},"strategyIndex":0}
+{"at":"2026-09-21T21:56:19.348Z","event":"policy_decision","stepId":"open_member","decision":{"kind":"allow"}}
+{"at":"2026-09-21T21:56:19.442Z","event":"checkpoint","stepId":"open_member","verified":true}
+{"at":"2026-09-21T21:56:19.445Z","event":"step_finished","stepId":"open_member","outputs":{}}
+{"at":"2026-09-21T21:56:19.446Z","event":"step_started","stepId":"open_savings","action":"click","description":"Open the member's savings account"}
+{"at":"2026-09-21T21:56:19.449Z","event":"target_resolved","stepId":"open_savings","identity":{"role":"link","name":"Open savings account"},"strategyIndex":0}
+{"at":"2026-09-21T21:56:19.450Z","event":"policy_decision","stepId":"open_savings","decision":{"kind":"allow"}}
+{"at":"2026-09-21T21:56:19.528Z","event":"checkpoint","stepId":"open_savings","verified":true}
+{"at":"2026-09-21T21:56:19.547Z","event":"step_finished","stepId":"open_savings","outputs":{}}
+{"at":"2026-09-21T21:56:19.548Z","event":"step_started","stepId":"read_balance","action":"read","description":"Read the current balance from the savings details frame"}
+{"at":"2026-09-21T21:56:19.561Z","event":"target_resolved","stepId":"read_balance","identity":{"role":"cell","name":"Current savings balance","frameTitle":"Savings account details"},"strategyIndex":0}
+{"at":"2026-09-21T21:56:19.562Z","event":"policy_decision","stepId":"read_balance","decision":{"kind":"allow"}}
+{"at":"2026-09-21T21:56:19.571Z","event":"step_finished","stepId":"read_balance","outputs":{"balance":{"amount":"[REDACTED]","currency":"USD"}}}
+{"at":"2026-09-21T21:56:19.581Z","event":"success_check","verified":true}
+{"at":"2026-09-21T21:56:19.582Z","event":"compatibility_check","verified":true,"missingMarkers":[]}
+{"at":"2026-09-21T21:56:19.582Z","event":"run_finished","result":{"status":"success","capabilityId":"lookup_savings_balance","outputs":{"balance":{"amount":"[REDACTED]","currency":"USD"}}},"controlEvents":[{"sessionId":"52451b5b-f7a3-44a3-a70a-033f1431825e","from":"automation","to":"finished","actor":"automation","reason":"success","at":"2026-09-21T21:56:19.582Z"}],"modelCalls":0}

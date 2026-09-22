@@ -97,6 +97,13 @@ export const CapabilityArtifactSchema = z.strictObject({
   steps: z.array(StepSchema).min(1),
   success: ConditionSchema,
   businessOutcomes: z.array(z.strictObject({ code: OutcomeCode, description: NonEmpty, when: ConditionSchema })),
+  provenance: z.strictObject({
+    discoverySessionId: NonEmpty,
+    provider: NonEmpty,
+    model: NonEmpty,
+    sourceLogSha256: z.string().regex(/^[a-f0-9]{64}$/),
+    compiledAt: z.iso.datetime(),
+  }).optional(),
 });
 export type CapabilityArtifact = z.infer<typeof CapabilityArtifactSchema>;
 

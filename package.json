@@ -6,7 +6,9 @@
   "scripts": {
     "app": "tsx src/mock-bank/server.ts",
     "app:dev": "tsx watch src/mock-bank/server.ts",
+    "compile:capability": "tsx src/compiler/cli.ts",
     "discover": "tsx src/discovery/cli.ts",
+    "replay": "tsx src/replay/cli.ts",
     "typecheck": "tsc --noEmit",
     "validate:example": "tsx src/core/validate-example.ts",
     "test": "tsx --test tests/*.test.ts",
